@@ -27,6 +27,7 @@ module ActiveAdmin
 
       # patching per_page to use the CSV record max for pagination when the format is xlsx
       def per_page_with_xlsx
+        per_page_without_xlsx
         if request.format ==  Mime::Type.lookup_by_extension(:xlsx)
           return max_csv_records
         end
