@@ -11,12 +11,30 @@ module ActiveAdmin
         base.send :respond_to, :xlsx
       end
 
+      def self.prepended(base)
+        base.send :respond_to, :xlsx, only: :index
+      end
+
+      # Patches index to respond to requests with xls mime type by
+      # sending a generated xls document serializing the current
+      # collection
+      def index
+        super do |format|
+          format.xlsx do
+            xlsx = active_admin_config.xlsx_builder.serialize(collection)
+            send_data xlsx, :filename => "#{xlsx_filename}", :type => Mime::Type.lookup_by_extension(:xlsx)
+          end
+
+          yield(format) if block_given?
+        end
+      end
+
       # patching the index method to allow the xlsx format.
       # def index_with_xlsx(options={}, &block)
       #   index_without_xlsx(options) do |format|
       #      format.xlsx do
       #       xlsx = active_admin_config.xlsx_builder.serialize(collection)
-      #       send_data(xlsx, :filename => "#{xlsx_filename}", :type => Mime::Type.lookup_by_extension(:xlsx))
+      #       send_data xlsx, :filename => "#{xlsx_filename}", :type => Mime::Type.lookup_by_extension(:xlsx)
       #     end
       #   end
       # end
